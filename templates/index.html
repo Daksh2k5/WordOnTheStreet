@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordOnTheStreet</title>
+    <style>
+        :root {
+            --bg-color-1: #0a0a0c;
+            --bg-color-2: #12131c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-color-1), var(--bg-color-2));
+            color: #ffffff;
+            transition: background 1.2s ease-in-out;
+            padding: 20px;
+        }
+
+        nav {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0 30px 0;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #fff;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 4px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-btn {
+            background: transparent;
+            color: #a1a1aa;
+            border: none;
+            padding: 8px 18px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: #ffffff;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            text-align: center;
+            margin: auto 0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+            background: linear-gradient(180deg, #ffffff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: #9090a0;
+            font-size: 1rem;
+            margin-bottom: 32px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(12px);
+            padding: 8px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 1.1rem;
+        }
+
+        input[type="text"]::placeholder {
+            color: #71717a;
+        }
+
+        .submit-btn {
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            outline: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.1s ease, background 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: #e4e4e7;
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        .results-card {
+            margin-top: 28px;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: left;
+            display: none;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .score-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+        }
+
+        .score-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+        }
+
+        .sentiment-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.8;
+        }
+
+        .sample-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sample-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            line-height: 1.4;
+            color: #d4d4d8;
+        }
+
+        .error-msg {
+            margin-top: 16px;
+            color: #f87171;
+            font-size: 0.95rem;
+        }
+
+        .loader {
+            display: none;
+            margin: 20px auto 0;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-card {
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: left;
+            line-height: 1.6;
+            color: #d4d4d8;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .info-card h2 {
+            font-size: 1.5rem;
+            color: #ffffff;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .info-card h3 {
+            font-size: 1.1rem;
+            color: #ffffff;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+
+        .info-card p {
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+
+        .info-card ul {
+            margin-left: 20px;
+            margin-bottom: 16px;
+            font-size: 0.93rem;
+        }
+
+        .info-card li {
+            margin-bottom: 8px;
+        }
+
+        .code-example {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            color: #fbbf24;
+            font-size: 0.88rem;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">WordOnTheStreet</div>
+        <div class="nav-tabs">
+            <button class="tab-btn active" id="btnAnalyzer" onclick="switchTab('analyzer')">Analyzer</button>
+            <button class="tab-btn" id="btnHowItWorks" onclick="switchTab('howItWorks')">How It Works</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <div id="tab-analyzer" class="tab-content active">
+            <h1>WordOnTheStreet</h1>
+            <p class="subtitle">Real-time public sentiment analyzer for any topic</p>
+
+            <form id="searchForm" class="search-box">
+                <input type="text" id="keyword" placeholder="Enter a keyword (e.g. starbucks, bitcoin)" required autocomplete="off" />
+                <button type="submit" class="submit-btn">Analyze</button>
+            </form>
+
+            <div id="loader" class="loader"></div>
+            <div id="errorMsg" class="error-msg"></div>
+
+            <div id="resultsCard" class="results-card">
+                <div class="score-header">
+                    <div>
+                        <div class="sentiment-label" id="sentimentLabel">Sentiment Score</div>
+                        <div id="targetKeyword" style="font-size: 1.1rem; opacity: 0.7;"></div>
+                    </div>
+                    <div class="score-value" id="scoreValue">0.00</div>
+                </div>
+
+                <p style="font-size: 0.85rem; color: #a1a1aa; margin-bottom: 12px;">Recent Comment Samples:</p>
+                <ul class="sample-list" id="sampleList"></ul>
+            </div>
+        </div>
+
+        <div id="tab-howItWorks" class="tab-content">
+            <div class="info-card">
+                <h2>What is WordOnTheStreet?</h2>
+                <p>
+                    WordOnTheStreet is a real-time sentiment analyzer that fetches recent Reddit comments on any keyword and calculates an average sentiment score using <strong>VADER</strong> (Valence Aware Dictionary and sEntiment Reasoner).
+                </p>
+                <p>
+                    The aggregate compound score ranges from <strong>-1.0 (Very Negative)</strong> to <strong>+1.0 (Very Positive)</strong>, providing a quick snapshot of current public perception.
+                </p>
+
+                <h3>Limitations & Disclaimer</h3>
+                <p>Please treat scores as an estimate rather than absolute fact. Because VADER relies on a lexicon and rule-based model rather than full context comprehension:</p>
+                <ul>
+                    <li>
+                        <strong>Targeting Ambiguity:</strong> It evaluates the overall text rather than who the sentiment is aimed at.
+                        <br>
+                        <span class="code-example">"The ban on {KEYWORD} is terrible"</span> will register as negative, even if the user is defending the keyword.
+                    </li>
+                    <li>
+                        <strong>Sarcasm & Slang:</strong> Sarcasm, ironical memes, and newer internet slang often bypass standard dictionary rules.
+                    </li>
+                    <li>
+                        <strong>Sample Bias:</strong> Results reflect recent Reddit activity and may not capture broader offline sentiment.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            const btnAnalyzer = document.getElementById('btnAnalyzer');
+            const btnHowItWorks = document.getElementById('btnHowItWorks');
+            const tabAnalyzer = document.getElementById('tab-analyzer');
+            const tabHowItWorks = document.getElementById('tab-howItWorks');
+
+            if (tabName === 'analyzer') {
+                btnAnalyzer.classList.add('active');
+                btnHowItWorks.classList.remove('active');
+                tabAnalyzer.classList.add('active');
+                tabHowItWorks.classList.remove('active');
+            } else {
+                btnHowItWorks.classList.add('active');
+                btnAnalyzer.classList.remove('active');
+                tabHowItWorks.classList.add('active');
+                tabAnalyzer.classList.remove('active');
+            }
+        }
+
+        const form = document.getElementById('searchForm');
+        const loader = document.getElementById('loader');
+        const errorMsg = document.getElementById('errorMsg');
+        const resultsCard = document.getElementById('resultsCard');
+        const scoreValue = document.getElementById('scoreValue');
+        const sentimentLabel = document.getElementById('sentimentLabel');
+        const targetKeyword = document.getElementById('targetKeyword');
+        const sampleList = document.getElementById('sampleList');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const keyword = document.getElementById('keyword').value.trim();
+            if (!keyword) return;
+
+            errorMsg.textContent = '';
+            resultsCard.style.display = 'none';
+            loader.style.display = 'block';
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keyword })
+                });
+
+                const data = await response.json();
+                loader.style.display = 'none';
+
+                if (!response.ok || data.error) {
+                    errorMsg.textContent = data.error || 'Something went wrong.';
+                    return;
+                }
+
+                renderResults(data);
+
+            } catch (err) {
+                loader.style.display = 'none';
+                errorMsg.textContent = 'Network error. Make sure the Flask app is running at http://127.0.0.1:5000.';
+            }
+        });
+
+        function renderResults(data) {
+            const score = data.average_score;
+            scoreValue.textContent = (score > 0 ? '+' : '') + score.toFixed(2);
+            targetKeyword.textContent = `Topic: "${data.keyword}" (${data.count} comments analyzed)`;
+
+            updateBackgroundGradient(score);
+
+            sampleList.innerHTML = '';
+            data.samples.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'sample-item';
+                li.textContent = item.snippet;
+                sampleList.appendChild(li);
+            });
+
+            resultsCard.style.display = 'block';
+        }
+
+        function updateBackgroundGradient(score) {
+            score = Math.max(-1, Math.min(1, score));
+            const normalized = (score + 1) / 2; 
+
+            let r, g, b;
+
+            if (normalized < 0.5) {
+                const t = normalized * 2;
+                r = Math.round(220 + (234 - 220) * t);
+                g = Math.round(38 + (179 - 38) * t);
+                b = Math.round(38 + (8 - 38) * t);
+            } else {
+                const t = (normalized - 0.5) * 2;
+                r = Math.round(234 + (34 - 234) * t);
+                g = Math.round(179 + (197 - 179) * t);
+                b = Math.round(8 + (94 - 8) * t);
+            }
+
+            if (score <= -0.15) {
+                sentimentLabel.textContent = "Negative Sentiment";
+            } else if (score >= 0.15) {
+                sentimentLabel.textContent = "Positive Sentiment";
+            } else {
+                sentimentLabel.textContent = "Neutral Sentiment";
+            }
+
+            const dark1 = `rgba(${Math.round(r * 0.25)}, ${Math.round(g * 0.25)}, ${Math.round(b * 0.25)}, 1)`;
+            const dark2 = `rgba(${Math.round(r * 0.08)}, ${Math.round(g * 0.08)}, ${Math.round(b * 0.08)}, 1)`;
+
+            document.body.style.background = `linear-gradient(135deg, ${dark1}, ${dark2})`;
+        }
+    </script>
+</body>
+</html>
